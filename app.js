@@ -8,9 +8,13 @@ const fs = require('fs');
 // Path del directorio de archivos Log
 let pathDirLogs = './logs/';
 // Archivo de Log
-let logFile = 'check-0.log';
+let logFile = 'reboot-0.log';
 // Configuracion de archivo Log
 loadFileLog();
+
+
+// Nombre del Sistema
+const systemName = 'ThinkStation Server';
 
 
 // Funcion que configura el archivo de Log que sera escrito
@@ -34,10 +38,10 @@ function loadFileLog() {
             // El archivo es demasiado grande, se crea un nuevo archivo de log
             var res = logFile.split("-")[1].split(".")[0];
             res++;
-            logFile = 'check-' + res + '.log';
+            logFile = 'reboot-' + res + '.log';
         }
     } else {
-        logFile = 'check-0.log';
+        logFile = 'reboot-0.log';
     }
 }
 
@@ -78,3 +82,95 @@ function sendEmail(para, asunto, mensaje) {
     });
 }
 
+// Funcion que ejecuta el programa
+function init() {
+    console.log('');
+    console.log('reboot-system');
+    console.log(moment().format('MMMM Do YYYY, h:mm:ss a'));
+    console.log('');
+    // Obtiene el argumento enviado desde linea de comandos
+    let inicia = (process.argv[2] == 'false');
+    // Valida cuando inicia o reinicia el sistema
+    if(inicia) {
+        // El sistema ha iniciado
+        //console.log('El sistema ha iniciado.');
+        // Configurar mensaje para notificar mediante un Email
+        let mensaje = '----------------------------------------------------\n';
+        mensaje += 'Hora Local: ' + moment().format('MMMM Do YYYY, h:mm:ss a') + '\n';
+        mensaje += 'El sistema ' + systemName + ' ha iniciado.' + '\n';
+        mensaje += '----------------------------------------------------\n\n';
+        console.log(mensaje);
+        // Escribe sobre archivo de Log
+        saveLog(mensaje);
+        // Configurar mensaje para notificar mediante un Email
+        let para = 'sebaxtianrioss@gmail.com';
+        let asunto = 'Reboot System';
+        mensaje += '\n\nPor favor valide si el sistema ' + systemName + ' esta activo.\n\n';
+        // Envia el mensaje
+        sendEmail(para, asunto, mensaje);
+    } else {
+        // El sistema sera reiniciado
+        //console.log('El sistema sera reiniciado.');
+        let promesa = new Promise((resolve, reject) => {
+            // Llamamos a resolve(...) cuando lo que estabamos haciendo finaliza con exito, y reject(...) cuando falla.
+            // Variable para configurar los minutos de espera antes de reiniciar el sistema
+            // 300000 == 5 minutos
+            let minutos = 300000;
+            // Configurar mensaje para notificar mediante un Email
+            let mensaje = '----------------------------------------------------\n';
+            mensaje += 'Hora Local: ' + moment().format('MMMM Do YYYY, h:mm:ss a') + '\n';
+            mensaje += 'El sistema ' + systemName + ' sera reiniciado en ' + (minutos / 60000) + ' minutos. \n';
+            mensaje += '----------------------------------------------------\n\n';
+            console.log(mensaje);
+            // Escribe sobre archivo de Log
+            saveLog(mensaje);
+            // Configurar mensaje para notificar mediante un Email
+            let para = 'sebaxtianrioss@gmail.com';
+            let asunto = 'Reboot System';
+            mensaje += '\n\nPor favor valide si el sistema ' + systemName + ' es reiniciado.\n\n';
+            // Envia el mensaje
+            sendEmail(para, asunto, mensaje);
+            // Espera 5 minutos para luego reiniciar el sistema
+            setTimeout(function(){
+                // Resuelve la promesa
+                resolve('reiniciar');
+            }, minutos);
+        });
+        // Cuando la promesa se resuelve, reinicia el sistema
+        promesa.then((successMessage) => {
+            // succesMessage es lo que sea que pasamos en la función resolve(...) de arriba.
+            if(successMessage == 'reiniciar') {
+                // Reinicia el sistema inmediatamente
+                reboot( function (err, stderr, stdout) {
+                    // Valida si es posible reinicar el sistema inmediatamente
+                    if(!err && !stderr) {
+                        // Si es posible reiniciar el sistema inmediatamente
+                        console.log(stdout);
+                    } else {
+                        // No es posible reiniciar el sistema
+                        //console.log('error: ' + err + '; stderr: ' + stderr);
+                        // Configurar mensaje para notificar mediante un Email
+                        let mensaje = '----------------------------------------------------\n';
+                        mensaje += 'Hora Local: ' + moment().format('MMMM Do YYYY, h:mm:ss a') + '\n';
+                        mensaje += 'No fue posible reiniciar el sistema ' + systemName + '\n';
+                        mensaje += 'error: ' + err + '\n';
+                        mensaje += 'stderr: ' + stderr + '\n';
+                        mensaje += '----------------------------------------------------\n\n';
+                        console.log(mensaje);
+                        // Escribe sobre archivo de Log
+                        saveLog(mensaje);
+                        // Configurar mensaje para notificar mediante un Email
+                        let para = 'sebaxtianrioss@gmail.com';
+                        let asunto = 'Reboot System';
+                        mensaje += '\n\nPor favor valide si el sistema ' + systemName + ' fue reinicado.\n\n';
+                        // Envia el mensaje
+                        sendEmail(para, asunto, mensaje);
+                    }
+                });
+            }
+        });
+    }
+}
+
+// Inicia la ejecucion del programa
+init();
