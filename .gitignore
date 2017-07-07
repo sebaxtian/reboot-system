@@ -57,3 +57,5 @@ typings/
 # dotenv environment variables file
 .env
 
+# Credenciales de acceso
+credenciales/gmail.js

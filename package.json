@@ -1,0 +1,34 @@
+{
+  "name": "reboot-system",
+  "version": "1.0.0",
+  "description": "Repositorio creado para ejecutar el reinicio del sistema desde Node.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebaxtian/reboot-system.git"
+  },
+  "keywords": [
+    "reboot",
+    "system",
+    "linux",
+    "osx",
+    "windows",
+    "notification",
+    "email",
+    "nodemailer"
+  ],
+  "author": "Sebastian Rios Sabogal",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sebaxtian/reboot-system/issues"
+  },
+  "homepage": "https://github.com/sebaxtian/reboot-system#readme",
+  "dependencies": {
+    "moment": "^2.18.1",
+    "nodejs-system-reboot": "0.0.4",
+    "nodemailer": "^4.0.1"
+  }
+}
